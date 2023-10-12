@@ -166,7 +166,7 @@ class DServer {
             std::vector<struct pollfd> fds { { server.getFd(), POLLIN, 0} };
 
             while (!this->m_terminate) {
-                int n = poll(fds.data(), fds.size(), -1);
+                int n = poll(fds.data(), fds.size(), 1);
                 SYSCHECK(n)
 
                 if (fds[0].revents & POLLIN) {
@@ -253,9 +253,13 @@ class Application {
                 this->startDaemon();
             } else if (argc == 3 && (!strcmp(argv[1], "-c") || !strcmp(argv[1], "--connect"))) {
                 this->connectDaemon();
+			} else if (argc == 2 && (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help"))) {
+				this->printHelp();
+            } else if (argc > 1) {
+                this->printInvArg();
             } else {
-                this->printHelp();
-            }
+				this->printHelp();
+			}
         }
 
         void printHelp() {
@@ -263,7 +267,16 @@ class Application {
                 << "  -h, --help        display this help and exit\n"
                 << "  -d, --demonize    demonize application\n"
                 << "  -c, --connect=MSG connect to daemon" << std::endl;
+
+			exit(EXIT_SUCCESS);
         }
+
+		void printInvArg() {
+			std::cerr << argv[0] << ": unrecognized option: " << argv[1] << "\n" 
+				<< "Try '" << argv[0] << " --help' for more information" << std::endl;
+
+			exit(EXIT_FAILURE);
+		}
 
         void startDaemon() {
             DServer();
